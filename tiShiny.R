@@ -27,9 +27,6 @@ sui = fluidPage(
       h4('Chart Option'),
       br(),
       
-      numericInput(inputId = 'n', label = 'MA Periods:', 
-                   min = 1, max = 500, value = 10),
-      
       selectInput(inputId = 'chartType', label = 'Choose Chart Type',
                   choices = c('Line' = 'line',
                               'Barchart' = 'bars',
@@ -39,6 +36,9 @@ sui = fluidPage(
       selectizeInput(inputId = 'techind', label = 'Choose Technical Indicators',
                   choices = c('SMA', 'EMA', 'MACD', 'RSI', 'Momentum'),
                   multiple = T),
+      
+      numericInput(inputId = 'n', label = 'MA Periods:', 
+                   min = 1, max = 500, value = 10),
       
       selectInput(inputId = 'bgcol', label = 'Background Colour', 
                   choices = c('Black' = 'black',
