@@ -9,9 +9,10 @@ sui = fluidPage(
   titlePanel(h3('Stock Analysis with Technical Indicators')),
   sidebarLayout(
     sidebarPanel(
+      width = 3,
       h4('Stock Selection'),
       br(),
-      textInput(inputId = 'stocknr',label = 'Stock Number', value = '0001.HK'),
+      textInput(inputId = 'stocknr', label = 'Stock Symbol', value = '0001.HK'),
       
       dateRangeInput(inputId = 'date', label = 'Date', 
                      start = '1999-01-01', end = as.character(Sys.Date())),
@@ -19,16 +20,15 @@ sui = fluidPage(
       selectInput(inputId = 'period', label = 'Periodicity',
                   choices = c('Daily' = 'daily',
                               'Weekly' = 'weekly',
-                              'Monthly' = 'monthly',
-                              'Quarterly' = 'quarterly',
-                              'Yearly' = 'yearly')
+                              'Monthly' = 'monthly')
                   ),
       
       br(),
       h4('Chart Option'),
       br(),
       
-      numericInput(inputId = 'n', label = 'MA Periods:', value = 10),
+      numericInput(inputId = 'n', label = 'MA Periods:', 
+                   min = 1, max = 500, value = 10),
       
       selectInput(inputId = 'chartType', label = 'Choose Chart Type',
                   choices = c('Line' = 'line',
@@ -54,8 +54,8 @@ sui = fluidPage(
         tabPanel(title = 'Plot', plotOutput(outputId = 'distplot')),
         tabPanel(title = 'Summary', 
                  fixedRow(
-                   h4("Today's Close: "),
-                   textOutput(outputId='today')),
+                   h4("Today's Price: "),
+                   tableOutput(outputId='today')),
                  br(),
                  fixedRow(
                    column(5,
@@ -87,10 +87,8 @@ sserv = function(input, output) {
                periodicity = input$period,
                auto.assign = FALSE)
   })
-
     
   output$distplot = renderPlot({
-    
     chartSeries(dataInput(),type = input$chartType, theme=chartTheme(input$bgcol),
                 TA = 'addVo()', name = input$stocknr)
     
@@ -105,8 +103,14 @@ sserv = function(input, output) {
   
   #============== summary ==================
   
+  # download this day's data
+  todayData = reactive({
+    getSymbols(input$stocknr, src = "yahoo", auto.assign = FALSE)
+  })
+  
   df = reactive ({
-    inp = na.omit(dataInput()[,4])
+    
+    inp = na.omit(todayData()[,4])
     
     Today = round(as.numeric(last(inp)),3)
     SMA10 = round(last(SMA(inp, 10)),3)
@@ -141,7 +145,7 @@ sserv = function(input, output) {
     return(tidf)
   })
   
-  output$today = renderText(df()$Today)
+  output$today = renderTable(getQuote(input$stocknr)[-1])
   output$sma = renderTable(df()$SMA)
   output$rsi = renderTable(df()$RSI)
   output$macd = renderTable(df()$MACD)
