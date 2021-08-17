@@ -16,6 +16,14 @@ sui = fluidPage(
       dateRangeInput(inputId = 'date', label = 'Date', 
                      start = '1999-01-01', end = as.character(Sys.Date())),
       
+      selectInput(inputId = 'period', label = 'Periodicity',
+                  choices = c('Daily' = 'daily',
+                              'Weekly' = 'weekly',
+                              'Monthly' = 'monthly',
+                              'Quarterly' = 'quarterly',
+                              'Yearly' = 'yearly')
+                  ),
+      
       br(),
       h4('Chart Option'),
       br(),
@@ -28,13 +36,9 @@ sui = fluidPage(
                               'Candlestick' = 'candlesticks'),
                   selected = 'Line'),
       
-      checkboxGroupInput(inputId = 'techind', label = 'Choose Technical Indicators',
-                  choices = c('SMA', 
-                              'EMA',
-                              'MACD',
-                              'RSI', 
-                              'MOM'),
-                  ),
+      selectizeInput(inputId = 'techind', label = 'Choose Technical Indicators',
+                  choices = c('SMA', 'EMA', 'MACD', 'RSI', 'Momentum'),
+                  multiple = T),
       
       selectInput(inputId = 'bgcol', label = 'Background Colour', 
                   choices = c('Black' = 'black',
@@ -80,6 +84,7 @@ sserv = function(input, output) {
     getSymbols(input$stocknr, src = "yahoo",
                from = input$date[1],
                to = input$date[2],
+               periodicity = input$period,
                auto.assign = FALSE)
   })
 
@@ -93,7 +98,7 @@ sserv = function(input, output) {
     if ('SMA' %in% input$techind)  print(addSMA(nlag))
     if ('EMA' %in% input$techind)  print(addEMA(nlag))
     if ('MACD' %in% input$techind)  print(addMACD())
-    if ('MOM' %in% input$techind)  print(addMomentum(nlag))
+    if ('Momentum' %in% input$techind)  print(addMomentum(nlag))
     if ('RSI' %in% input$techind)  print(addRSI(nlag))
     
   })
