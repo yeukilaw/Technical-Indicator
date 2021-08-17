@@ -3,7 +3,9 @@ library(TTR)
 library(quantmod)
 library(DT)
 
-#================= ui ==========================
+#===============================================
+#==                ui                        ===
+#===============================================
 
 sui = fluidPage(
   titlePanel(h3('Stock Analysis with Technical Indicators')),
@@ -70,14 +72,16 @@ sui = fluidPage(
                    h5("MACD Indicators: "),
                    tableOutput(outputId = 'macd'))
         ),
-        tabPanel(title = 'History', DTOutput(outputId = 'pricerecord'))
+        tabPanel(title = 'Historical Price', DTOutput(outputId = 'pricerecord')),
+        tabPanel(title = 'Dividends Record', DTOutput(outputId = 'dividends'))
       )
-    
-      )
+    )
   )
 )
 
-#================= server ==========================
+#===============================================
+#==                server                    ===
+#===============================================
 
 sserv = function(input, output) {
   dataInput = reactive({
@@ -154,16 +158,32 @@ sserv = function(input, output) {
   
   histtable = reactive({
     inp = na.omit(dataInput())
-    histmat = as.data.frame(inp)
-    colnames(histmat) = c('Open', 'High', 'Low', 'Close', 'Volume', 'Adjusted')
+    histmat = cbind(index(inp), as.data.frame(inp))
+    colnames(histmat) = c('Date','Open', 'High', 'Low', 'Close', 'Volume', 'Adjusted')
+    histmat = histmat[order(histmat$Date,decreasing = T),]
+    histmat[,-1] = round(histmat[,-1],3)
     return(histmat)
   })
   
-  output$pricerecord = renderDT(histtable())
+  output$pricerecord = renderDT(histtable(), rownames = F)
+  
+  #================= dividends ==========================
+  
+  divtable = reactive({
+    divmat = getDividends(input$stocknr)
+    divmat = cbind(index(divmat), as.data.frame(divmat))
+    colnames(divmat) = c('Date','Dividends')
+    divmat = divmat[order(divmat$Date,decreasing = T),]
+    return(divmat)
+  })
+  
+  output$dividends = renderDT(divtable(), rownames = F)
   
 }
 
-#================= runApp ==========================
+#===============================================
+#==                runApp                    ===
+#===============================================
 
 app = shinyApp(
   ui = sui,
